@@ -64,6 +64,57 @@ private:
         return dest;
     }
 
+    Node* _deleteNode(Node* node) {
+        if (node == nullptr) {
+            return nullptr;
+        }
+
+        Node* pTmp = node;
+
+        if (node->left == nullptr && node->right == nullptr) {
+            delete node;
+            node = nullptr;
+        }
+        else if (node->left != nullptr && node->right != nullptr) {
+            pTmp = _minValueNode(node);
+            node->val = pTmp->val;
+            node->right = _deleteRecursion(node->val, node->right);
+        }
+        else if (node->left == nullptr) {
+            node = node->right;
+            delete pTmp;
+            pTmp = nullptr;
+        }
+        else if (node->right == nullptr) {
+            node = node->left;
+            delete pTmp;
+            pTmp = nullptr;
+        }
+
+        return node;
+    }
+
+    Node* _deleteRecursion(int val, Node* node) {
+        if (node == nullptr) {
+            return nullptr;
+        }
+
+        if (val < node->val) {
+            node->left = _deleteRecursion(val, node->left);
+        }
+        else if (val > node->val) {
+            node->right = _deleteRecursion(val, node->right);
+        }
+        else {
+            node = _deleteNode(node);
+        }
+
+        node = _balance(node);
+        _updateHeight(node);
+
+        return node;
+    }
+
     void _deleteTree() {
         _deleteTree(root);
         root = nullptr;
@@ -103,6 +154,20 @@ private:
 
         node = _balance(node);
         _updateHeight(node);
+
+        return node;
+    }
+
+    Node* _minValueNode(Node* node) {
+        if (node == nullptr) {
+            return nullptr;
+        }
+
+        node = node->right;
+
+        while (node->left != nullptr) {
+            node = node->left;
+        }
 
         return node;
     }
@@ -176,7 +241,9 @@ private:
     }
 
     void _updateHeight(Node* node) {
-        node->height = max(_getHeight(node->left), _getHeight(node->right)) + 1;
+        if (node != nullptr) {
+            node->height = max(_getHeight(node->left), _getHeight(node->right)) + 1;
+        }
     }
 
 public:
@@ -192,7 +259,14 @@ public:
         _deleteTree();
     }
 
+    void remove(int val) {
+        cout << DEBUG_TAG << "remove " << val << "." << endl;
+        root = _deleteRecursion(val, root);
+        printTree();
+    }
+
     void insert(int val) {
+        cout << DEBUG_TAG << "insert " << val << "." << endl;
         root = _insertRecursion(val, root);
         printTree();
     }
@@ -213,6 +287,7 @@ public:
         queue<Node*> q;
 
         if (root == nullptr) {
+            cout << endl;
             return;
         }
 
@@ -299,6 +374,35 @@ public:
         tree.insert(16); // RR rotation.
         tree.insert(19);
         tree.insert(17); // RL rotation.
+        tree.insert(13); // Inserting a duplicate.
+        tree.insert(19); // Inserting a duplicate.
+        tree.insert(9);
+
+        cout << endl;
+        cout << "test case 2: removals." << endl;
+
+        tree.remove(9);
+        tree.insert(9);
+        tree.remove(10);
+        tree.insert(10);
+        tree.remove(17);
+        tree.remove(19);
+        tree.insert(15);
+        tree.insert(20);
+        tree.remove(13);
+        tree.remove(7);
+        tree.remove(3);
+        tree.remove(9);
+        tree.remove(10);
+        tree.remove(15);
+        tree.remove(16);
+        tree.remove(4);
+        tree.remove(19); // Removing a non-existent value.
+        tree.remove(20);
+        tree.remove(2);
+        tree.remove(1); // Removing a non-existent value from an empty tree.
+        tree.insert(INT_MAX);
+        tree.insert(INT_MIN);
 
         cout << TEST_CASE_HEADING << endl << endl;
     }
@@ -307,6 +411,7 @@ public:
 int main() {
     Solution sln;
 
+    sln.testCase1();
     sln.testCase2();
 
     return 0;
